@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import type { ScanResult, VenuePrice } from "@backend/lib/types";
+import { addBet } from "@/lib/bets";
 
 const VENUE_ACCENT: Record<string, string> = {
   Polymarket: "text-brand",
@@ -68,6 +70,90 @@ const SENTIMENT_STYLE: Record<string, string> = {
   bear: "bg-bad/15 text-bad",
   mixed: "bg-warn/15 text-warn",
 };
+
+function TrackBet({ result }: { result: ScanResult }) {
+  const [open, setOpen] = useState(false);
+  const [venue, setVenue] = useState(result.bestVenue);
+  const [stake, setStake] = useState(10);
+  const [saved, setSaved] = useState(false);
+
+  const selected = result.prices.find((p) => p.venue === venue) ?? result.prices[0];
+
+  function save() {
+    if (!selected || stake <= 0) return;
+    addBet({
+      eventId: result.eventId,
+      eventTitle: result.title,
+      side: result.side,
+      venue: selected.venue,
+      oddsAtBet: selected.impliedProb,
+      rawPrice: selected.rawPrice,
+      stake,
+    });
+    setSaved(true);
+    setOpen(false);
+    setTimeout(() => setSaved(false), 2500);
+  }
+
+  return (
+    <div className="border-t border-edge p-5">
+      {!open ? (
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs text-white/40">
+            {saved ? "Saved to My Bets ✓" : "Like this edge? Track it and grade it later."}
+          </span>
+          <button
+            onClick={() => setOpen(true)}
+            className="rounded-xl border border-brand/50 bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition hover:bg-brand/20"
+          >
+            + Track this bet
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="flex-1 text-xs text-white/50">
+            Venue
+            <select
+              value={venue}
+              onChange={(e) => setVenue(e.target.value as typeof venue)}
+              className="mt-1 w-full rounded-lg border border-edge bg-panel2 px-3 py-2 text-sm text-white outline-none focus:border-brand/60"
+            >
+              {result.prices.map((p) => (
+                <option key={p.venue} value={p.venue}>
+                  {p.venue} — {(p.impliedProb * 100).toFixed(1)}% ({p.rawPrice})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-white/50 sm:w-32">
+            Stake ($)
+            <input
+              type="number"
+              min={1}
+              value={stake}
+              onChange={(e) => setStake(Number(e.target.value))}
+              className="mt-1 w-full rounded-lg border border-edge bg-panel2 px-3 py-2 text-sm text-white outline-none focus:border-brand/60"
+            />
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={save}
+              className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-110"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setOpen(false)}
+              className="rounded-lg border border-edge px-4 py-2 text-sm text-white/60 hover:text-white"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ResultCard({ result }: { result: ScanResult }) {
   const diverges = result.divergencePts > 4;
@@ -141,6 +227,9 @@ export default function ResultCard({ result }: { result: ScanResult }) {
           </div>
         )}
       </div>
+
+      {/* Track this bet */}
+      <TrackBet result={result} />
     </div>
   );
 }
