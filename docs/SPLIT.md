@@ -25,11 +25,12 @@ Everything flows through two shared contracts:
 
 **Owner: Ron.** Nothing else starts until this is committed.
 
-- [ ] Lock `backend/lib/types.ts`. Freeze the `ScanResult` shape. This is the
+- [x] Lock `backend/lib/types.ts`. Freeze the `ScanResult` shape. This is the
       single source of truth Ray and Zavier both build against.
-- [ ] Fill in at least ONE event in `backend/data/events.ts` end to end:
+- [x] Fill in at least ONE event in `backend/data/events.ts` end to end:
       title, side, keywords, venue ID mappings, mock prices, mock research.
 - [ ] Commit and push. Announce in the group chat: "contract is frozen."
+      <!-- left for you: all code/data deliverables are done; git is yours to run -->
 
 Why this matters: if the `ScanResult` shape changes after this point, Ray and
 Zavier both eat merge pain. Freeze it early, change it only by group agreement.
@@ -48,13 +49,13 @@ failure-prone, so it gets a full lane.
 - `backend/skills/odds-normalisation.md`, `backend/skills/exa-research.md`
 
 **Checklist:**
-- [ ] `priceAgent`: Polymarket Gamma (price IS the prob), Kalshi (yes-bid/ask
+- [x] `priceAgent`: Polymarket Gamma (price IS the prob), Kalshi (yes-bid/ask
       midpoint), Odds API (de-vig across the field).
-- [ ] Each venue: live call → on any failure read cache → finally fall back to
+- [x] Each venue: live call → on any failure read cache → finally fall back to
       the mock in `events.ts`. The card must render with every API down.
-- [ ] `researchAgent`: Exa news search, best-effort tweets, OpenAI synthesis into
+- [x] `researchAgent`: Exa news search, best-effort tweets, OpenAI synthesis into
       a 2-sentence cited explanation. Same cache→mock fallback.
-- [ ] Tag every number `LIVE` / `CACHED` / `MOCK` via the `isLive` / `fromCache`
+- [x] Tag every number `LIVE` / `CACHED` / `MOCK` via the `isLive` / `fromCache`
       flags so the UI can show provenance.
 
 **Safety net:** Ron's mocks mean a broken API never blocks the demo. Build live,
@@ -76,14 +77,14 @@ agents, and the HTTP wiring.
 - `frontend/app/api/scan/route.ts`, `frontend/app/api/events/route.ts` — HTTP wiring
 
 **Checklist:**
-- [ ] Hour-0 contract (above).
-- [ ] All 3 events fully populated in `events.ts` with real venue IDs + mocks.
-- [ ] `parseAgent`: keyword/token overlap scoring; gibberish returns nothing.
-- [ ] `synthesisAgent`: `bestVenue` = lowest implied prob; `divergencePts` =
+- [x] Hour-0 contract (above).
+- [x] All 3 events fully populated in `events.ts` with real venue IDs + mocks.
+- [x] `parseAgent`: keyword/token overlap scoring; gibberish returns nothing.
+- [x] `synthesisAgent`: `bestVenue` = lowest implied prob; `divergencePts` =
       (max − min) × 100.
-- [ ] `/api/scan`: POST query → parse → synthesis → `ScanResult`; 404 with
+- [x] `/api/scan`: POST query → parse → synthesis → `ScanResult`; 404 with
       suggestions when no event matches.
-- [ ] `/api/events`: GET demo list for the quick-pick chips.
+- [x] `/api/events`: GET demo list for the quick-pick chips.
 
 **Single-writer rule:** Ron owns `types.ts` and `events.ts`. Shared-read,
 single-writer. Anyone needing a change asks Ron.
@@ -102,13 +103,13 @@ goes live.
 - `frontend/components/ResultCard.tsx` — result rendering
 
 **Checklist:**
-- [ ] `Scanner`: search box, popular chips, and all four states — idle, loading
+- [x] `Scanner`: search box, popular chips, and all four states — idle, loading
       (skeleton), error (with suggestions), done.
-- [ ] `ResultCard`: 3 venue cards, best-price highlight, divergence badge (show
+- [x] `ResultCard`: 3 venue cards, best-price highlight, divergence badge (show
       when gap > 4 pts), research panel, clickable source links.
-- [ ] `LIVE` / `CACHED` / `MOCK` tag on each venue + the research panel.
-- [ ] Edge cases: long team names, zero sources, error state, mobile width.
-- [ ] Start against a fixture; swap to the live `/api/scan` call last.
+- [x] `LIVE` / `CACHED` / `MOCK` tag on each venue + the research panel.
+- [x] Edge cases: long team names, zero sources, error state, mobile width.
+- [x] Start against a fixture; swap to the live `/api/scan` call last.
 
 ---
 

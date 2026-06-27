@@ -57,12 +57,22 @@ async function fetchKalshi(ref: VenueRef): Promise<LivePrice> {
     `https://api.elections.kalshi.com/trade-api/v2/markets/${ref.kalshiTicker}`
   );
   const m = data?.market ?? data;
-  const bid = Number(m?.yes_bid);
-  const ask = Number(m?.yes_ask);
-  if (!isFinite(bid) || !isFinite(ask)) throw new Error("kalshi: bad quote");
-  const midCents = (bid + ask) / 2;
-  const prob = midCents / 100;
-  return { impliedProb: prob, rawPrice: `${midCents.toFixed(1)}¢ (yes mid)` };
+
+  // The live API returns dollar-denominated quotes (yes_bid_dollars ~ "0.116",
+  // already a probability). Older/cents responses use yes_bid in cents. Prefer
+  // dollars, fall back to cents/100, so both shapes work.
+  const bidD = Number(m?.yes_bid_dollars);
+  const askD = Number(m?.yes_ask_dollars);
+  let prob: number;
+  if (isFinite(bidD) && isFinite(askD)) {
+    prob = (bidD + askD) / 2;
+  } else {
+    const bid = Number(m?.yes_bid);
+    const ask = Number(m?.yes_ask);
+    if (!isFinite(bid) || !isFinite(ask)) throw new Error("kalshi: bad quote");
+    prob = (bid + ask) / 2 / 100;
+  }
+  return { impliedProb: prob, rawPrice: `${(prob * 100).toFixed(1)}¢ (yes mid)` };
 }
 
 async function fetchSportsbook(ref: VenueRef): Promise<LivePrice> {
