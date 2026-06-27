@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Scanner from "./Scanner";
+import MyBets from "./MyBets";
+import Leaderboard from "./Leaderboard";
+import History from "./History";
 
 type TabId = "scanner" | "bets" | "leaderboard" | "history";
 
@@ -13,19 +16,6 @@ const TABS: { id: TabId; label: string; icon: string; blurb: string }[] = [
 ];
 
 const TAB_KEY = "overunder.tab";
-
-function ComingNext({ tab }: { tab: { label: string; icon: string; blurb: string } }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-edge bg-panel/50 p-12 text-center">
-      <div className="text-4xl">{tab.icon}</div>
-      <h3 className="mt-3 text-lg font-semibold text-white">{tab.label}</h3>
-      <p className="mx-auto mt-1 max-w-sm text-sm text-white/50">{tab.blurb}.</p>
-      <span className="mt-4 inline-block rounded-full border border-edge bg-panel2 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-white/40">
-        Coming next
-      </span>
-    </div>
-  );
-}
 
 export default function Dashboard() {
   const [tab, setTab] = useState<TabId>("scanner");
@@ -92,9 +82,9 @@ export default function Dashboard() {
         </header>
 
         {tab === "scanner" && <Scanner />}
-        {tab === "bets" && <ComingNext tab={TABS[1]} />}
-        {tab === "leaderboard" && <ComingNext tab={TABS[2]} />}
-        {tab === "history" && <ComingNext tab={TABS[3]} />}
+        {tab === "bets" && <MyBets />}
+        {tab === "leaderboard" && <Leaderboard />}
+        {tab === "history" && <History />}
       </main>
     </div>
   );
