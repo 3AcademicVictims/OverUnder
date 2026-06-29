@@ -28,3 +28,7 @@ next-env.d.ts
 # cached API responses (keep the dir, ignore generated contents)
 backend/data/cache/*.json
 !backend/data/cache/.gitkeep
+.gstack/
+
+# local design-tooling state (impeccable critiques + hook cache)
+.impeccable/
