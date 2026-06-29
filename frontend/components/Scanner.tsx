@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ScanResult } from "@backend/lib/types";
 import ResultCard from "./ResultCard";
+import GlobePicker from "./GlobePicker";
 
 interface EventChip {
   id: string;
@@ -12,7 +13,7 @@ interface EventChip {
 
 type State =
   | { status: "idle" }
-  | { status: "loading" }
+  | { status: "loading"; query: string }
   | { status: "error"; message: string; suggestions?: { id: string; title: string }[] }
   | { status: "done"; result: ScanResult };
 
@@ -41,6 +42,17 @@ function ResultSkeleton() {
   );
 }
 
+function BackToGlobe({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="mb-4 inline-flex items-center gap-2 rounded-full border border-edge bg-panel/80 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur transition hover:border-brand/60 hover:text-white"
+    >
+      <span aria-hidden>←</span> Back to globe
+    </button>
+  );
+}
+
 export default function Scanner() {
   const [query, setQuery] = useState("");
   const [chips, setChips] = useState<EventChip[]>([]);
@@ -57,7 +69,7 @@ export default function Scanner() {
     const text = q.trim();
     if (!text) return;
     setQuery(text);
-    setState({ status: "loading" });
+    setState({ status: "loading", query: text });
     try {
       const res = await fetch("/api/scan", {
         method: "POST",
@@ -75,88 +87,108 @@ export default function Scanner() {
     }
   }
 
+  function reset() {
+    setState({ status: "idle" });
+  }
+
+  const idle = state.status === "idle";
+
   return (
-    <div className="space-y-6">
-      {/* Search */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          runScan(query);
-        }}
-        className="flex flex-col gap-3 sm:flex-row"
+    <section className="relative h-[100dvh] w-full overflow-hidden">
+      {/* Globe backdrop — always mounted, dimmed when a panel is open. */}
+      <div
+        className={`absolute inset-0 transition-[filter,opacity,transform] duration-500 ease-out ${
+          idle ? "" : "scale-[1.03] opacity-35 blur-[2px]"
+        }`}
       >
-        <div className="relative flex-1">
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder='Try "Spain to win the World Cup" or "England champion"'
-            className="w-full rounded-xl border border-edge bg-panel py-3 pl-10 pr-4 text-white placeholder:text-white/30 outline-none transition focus:border-brand/60"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={state.status === "loading" || !query.trim()}
-          className="rounded-xl bg-brand px-6 py-3 font-semibold text-ink transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {state.status === "loading" ? "Scanning…" : "Scan"}
-        </button>
-      </form>
+        <GlobePicker events={chips} onPick={runScan} autoRotate={idle} />
+      </div>
 
-      {/* Popular quick-picks */}
-      {chips.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-white/40">Popular:</span>
-          {chips.map((c) => (
+      {/* Top: slim search + hint (only on the globe home). */}
+      {idle && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-sticky flex flex-col items-center gap-3 px-4 pt-20 sm:pt-7">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              runScan(query);
+            }}
+            className="pointer-events-auto flex w-full max-w-xl gap-2"
+          >
+            <div className="relative flex-1">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/40" aria-hidden>
+                ⌕
+              </span>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search any team — or tap a nation on the globe"
+                aria-label="Search a market"
+                className="w-full rounded-full border border-edge bg-panel/85 py-3 pl-11 pr-4 text-white placeholder:text-white/55 outline-none backdrop-blur transition focus:border-brand/60"
+              />
+            </div>
             <button
-              key={c.id}
-              onClick={() => runScan(c.side)}
-              className="rounded-full border border-edge bg-panel2 px-3 py-1 text-xs text-white/70 transition hover:border-brand/60 hover:text-white"
+              type="submit"
+              disabled={!query.trim()}
+              className="rounded-full bg-brand px-6 py-3 font-semibold text-ink transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {c.side}
+              Scan
             </button>
-          ))}
-        </div>
-      )}
-
-      {/* States */}
-      {state.status === "idle" && (
-        <div className="rounded-2xl border border-dashed border-edge bg-panel/50 p-10 text-center">
-          <div className="text-3xl">⚖️</div>
-          <h3 className="mt-3 text-lg font-semibold text-white">Scan a market</h3>
-          <p className="mx-auto mt-1 max-w-md text-sm text-white/50">
-            Pick a popular market above, or type a team. You&apos;ll get its implied probability across
-            Polymarket, Kalshi and a sportsbook line — with the best price highlighted and a sourced take on
-            why they disagree.
+          </form>
+          <p className="rounded-full bg-ink/40 px-3 py-1 text-xs text-white/75 backdrop-blur">
+            It&apos;s World Cup season — tap Spain, France or England to compare their title odds.
           </p>
         </div>
       )}
 
-      {state.status === "loading" && <ResultSkeleton />}
-
-      {state.status === "error" && (
-        <div className="rounded-2xl border border-bad/40 bg-bad/[0.06] p-6">
-          <div className="font-semibold text-bad">{state.message}</div>
-          {state.suggestions && state.suggestions.length > 0 && (
-            <div className="mt-3">
-              <div className="text-sm text-white/50">Try one of the demo markets:</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {state.suggestions.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => runScan(s.title)}
-                    className="rounded-full border border-edge bg-panel2 px-3 py-1 text-xs text-white/70 hover:border-brand/60 hover:text-white"
-                  >
-                    {s.title}
-                  </button>
-                ))}
-              </div>
+      {/* Loading overlay. */}
+      {state.status === "loading" && (
+        <div className="pointer-events-none absolute inset-0 z-overlay flex items-start justify-center overflow-y-auto px-4 py-20">
+          <div className="pointer-events-auto w-full max-w-2xl">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-edge bg-panel/80 px-4 py-2 text-sm text-white/80 backdrop-blur">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-brand" /> Scanning {state.query}…
             </div>
-          )}
+            <ResultSkeleton />
+          </div>
         </div>
       )}
 
-      {state.status === "done" && <ResultCard result={state.result} />}
-    </div>
+      {/* Error overlay. */}
+      {state.status === "error" && (
+        <div className="pointer-events-none absolute inset-0 z-overlay flex items-start justify-center overflow-y-auto px-4 py-20">
+          <div className="pointer-events-auto w-full max-w-lg">
+            <BackToGlobe onClick={reset} />
+            <div className="rounded-2xl border border-bad/40 bg-panel p-6 shadow-panel">
+              <div className="font-semibold text-bad">{state.message}</div>
+              {state.suggestions && state.suggestions.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-sm text-white/65">Try one of the demo markets:</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {state.suggestions.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => runScan(s.title)}
+                        className="rounded-full border border-edge bg-panel2 px-3 py-1 text-xs text-white/80 transition hover:border-brand/60 hover:text-white"
+                      >
+                        {s.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Result overlay. */}
+      {state.status === "done" && (
+        <div className="pointer-events-none absolute inset-0 z-overlay flex items-start justify-center overflow-y-auto px-4 py-20">
+          <div className="pointer-events-auto w-full max-w-3xl">
+            <BackToGlobe onClick={reset} />
+            <ResultCard result={state.result} />
+          </div>
+        </div>
+      )}
+    </section>
   );
 }

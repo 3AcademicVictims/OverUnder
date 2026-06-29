@@ -28,8 +28,8 @@ function VenueRow({ price, isBest }: { price: VenuePrice; isBest: boolean }) {
         isBest ? "border-good/60 bg-good/[0.06]" : "border-edge bg-panel2"
       }`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           <span className={`text-sm font-semibold ${VENUE_ACCENT[price.venue] ?? "text-white"}`}>
             {price.venue}
           </span>
@@ -40,9 +40,9 @@ function VenueRow({ price, isBest }: { price: VenuePrice; isBest: boolean }) {
             </span>
           )}
         </div>
-        <div className="text-right">
+        <div className="shrink-0 text-right">
           <div className="font-mono text-lg font-semibold text-white">{pct(price.impliedProb)}</div>
-          <div className="text-[11px] text-white/45">{price.rawPrice}</div>
+          <div className="text-[11px] text-white/55">{price.rawPrice}</div>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ function VenueRow({ price, isBest }: { price: VenuePrice; isBest: boolean }) {
         href={price.sourceUrl}
         target="_blank"
         rel="noreferrer"
-        className="mt-2 inline-block text-[11px] text-white/40 underline-offset-2 hover:text-white/70 hover:underline"
+        className="mt-2 inline-block text-[11px] text-white/65 underline-offset-2 hover:text-white hover:underline"
       >
         {price.label} ↗
       </a>
@@ -99,7 +99,7 @@ function TrackBet({ result }: { result: ScanResult }) {
     <div className="border-t border-edge p-5">
       {!open ? (
         <div className="flex items-center justify-between gap-3">
-          <span className="text-xs text-white/40">
+          <span className="text-xs text-white/65">
             {saved ? "Saved to My Bets ✓" : "Like this edge? Track it and grade it later."}
           </span>
           <button
@@ -164,7 +164,7 @@ export default function ResultCard({ result }: { result: ScanResult }) {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-edge p-5">
         <div>
-          <div className="text-[11px] uppercase tracking-wider text-white/40">{result.category}</div>
+          <div className="text-[11px] uppercase tracking-wider text-white/55">{result.category}</div>
           <h2 className="mt-0.5 text-xl font-semibold text-white">{result.title}</h2>
           <div className="mt-1 text-sm text-white/50">
             Backing <span className="font-medium text-white/80">{result.side}</span>
@@ -208,11 +208,11 @@ export default function ResultCard({ result }: { result: ScanResult }) {
 
         {research.sources.length > 0 && (
           <div className="mt-4">
-            <div className="text-[11px] uppercase tracking-wider text-white/40">Sources</div>
+            <div className="text-[11px] uppercase tracking-wider text-white/55">Sources</div>
             <ul className="mt-2 space-y-1.5">
               {research.sources.map((s, i) => (
                 <li key={s.url + i} className="flex gap-2 text-sm">
-                  <span className="font-mono text-white/30">[{i + 1}]</span>
+                  <span className="font-mono text-white/55">[{i + 1}]</span>
                   <a
                     href={s.url}
                     target="_blank"

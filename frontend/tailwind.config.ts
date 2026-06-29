@@ -23,6 +23,14 @@ const config: Config = {
       },
       boxShadow: {
         card: "0 1px 0 0 rgba(255,255,255,0.04) inset, 0 10px 30px -12px rgba(0,0,0,0.6)",
+        panel: "0 20px 60px -20px rgba(0,0,0,0.75)",
+      },
+      zIndex: {
+        scene: "10",
+        sticky: "20",
+        overlay: "30",
+        backdrop: "40",
+        drawer: "50",
       },
     },
   },
